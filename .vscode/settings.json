@@ -1,0 +1,75 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[mjs]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[astro]": {
+    "editor.defaultFormatter": "astro-build.astro-vscode"
+  },
+
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "wrangler.json": "jsonc"
+  },
+
+  "workbench.editorAssociations": {
+    "*.md": "default"
+  },
+
+  "prettier.configPath": ".vscode/.prettierrc",
+  "prettier.ignorePath": "../.gitignore",
+  "npm.scriptExplorerExclude": ["install", "clean", "cf-typegen", "build", "deploy", "download"],
+  "npm.packageManager": "npm",
+
+  // Remove some vscode popups
+  "extensions.ignoreRecommendations": true,
+  "git.autofetch": true,
+
+  // Hide folders
+  "files.exclude": {
+    "**/.astro/": true,
+    "**/.angular/": true,
+    "**/.nx/": true,
+    "**/.wrangler/": true,
+    "**/node_modules/": true,
+    "**/package-lock.json": true,
+    "**/dist/": true,
+    "**/bin/": true,
+    "**/obj/": true
+  },
+
+  // Todos
+  "todo.file.include": ["**/todo.txt"],
+  "todo.embedded.provider": "javascript",
+  "todo.embedded.include": ["**/*"],
+  "todo.embedded.exclude": ["**/.*", "**/.*/**", "**/node_modules/**", "**/dist/**"],
+
+  // Images: ".drawio.svg" ".excalidraw.svg"
+  "svg.preview.background": "editor",
+  "excalidraw.workspaceLibraryPath": "./.vscode/excalidraw-library.json",
+
+  // Markdown
+  "markdown-preview-enhanced.enableScriptExecution": true
+}

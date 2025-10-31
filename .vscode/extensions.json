@@ -1,0 +1,48 @@
+{
+  "recommendations": [
+    // Workflow (not file specific)
+    "esbenp.prettier-vscode",
+    "fabiospampinato.vscode-todo-plus",
+    "sandcastle.vscode-open",
+
+    // Workflow: AI
+    "Supermaven.supermaven",
+    "RooVeterinaryInc.roo-cline",
+
+    // Theming
+    "BeardedBear.beardedicons",
+    "GitHub.github-vscode-theme",
+
+    // Language: JS + Frontend
+    "Angular.ng-template",
+    "astro-build.astro-vscode",
+    "bradlc.vscode-tailwindcss",
+    "unifiedjs.vscode-mdx",
+    "attilabuti.vscode-mjml",
+    "YoavBls.pretty-ts-errors",
+    "christian-kohler.npm-intellisense",
+    "christian-kohler.path-intellisense",
+    "sibiraj-s.vscode-scss-formatter",
+    "bashmish.es6-string-css",
+    "tobermory.es6-string-html",
+
+    // Language: C#
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.vscode-dotnet-runtime",
+
+    // Content Filetype: Text
+    "shd101wyy.markdown-preview-enhanced",
+    "jebbs.markdown-extended",
+    "bpruitt-goddard.mermaid-markdown-syntax-highlighting",
+    "cweijan.vscode-office",
+    "tootone.org-mode",
+
+    // Content Filetype: Images
+    "pomdtr.excalidraw-editor",
+    "hediet.vscode-drawio",
+    "tldraw-org.tldraw-vscode",
+    "jock.svg",
+    "dineug.vuerd-vscode"
+  ]
+}
