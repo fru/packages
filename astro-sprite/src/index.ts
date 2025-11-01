@@ -1,1 +1,1 @@
-export { default as subtract } from './subtract';
+export * from './sprite-helper';
