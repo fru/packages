@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "1.0.0",
   "name": "@fru/astro-sprite",
   "description": "Sprite-based SVGs in Astro",
   "author": "Florian Rueberg",

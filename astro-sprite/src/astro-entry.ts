@@ -1,6 +1,4 @@
 import type { APIRoute } from 'astro';
-
-// @ts-ignore
 import sprites from 'virtual:fru-astro-sprite/sprites';
 
 export async function getStaticPaths() {
@@ -9,8 +7,8 @@ export async function getStaticPaths() {
   }));
 }
 
-export const GET: APIRoute = async ({ params }: any) => {
-  return new Response(sprites[params.sprite], {
+export const GET: APIRoute<{ sprite: string }> = async ({ params }) => {
+  return new Response(sprites[params.sprite!], {
     status: 200,
     headers: {
       'Content-Type': 'image/svg+xml',

@@ -1,1 +1,39 @@
-export * from './sprite-helper';
+import type { AstroIntegration } from 'astro';
+import { addVirtualImports } from 'astro-integration-kit';
+import { buildSvgGroup, type SVGIconContent } from './build-svg';
+
+export * from './build-iconify';
+export * from './build-svg';
+
+export interface SpriteConfig {
+  name: string;
+  type: 'sprite' | 'stack';
+  icons?: SVGIconContent[];
+}
+
+export function serve(rootUrl: string, config: SpriteConfig[]): AstroIntegration {
+  const sprites = Object.fromEntries(
+    config.map(({ name, type, icons }) => {
+      return [name, buildSvgGroup(type, icons || [])];
+    }),
+  );
+
+  return {
+    name: 'fru-astro-sprite',
+    hooks: {
+      'astro:config:setup': (params) => {
+        addVirtualImports(params, {
+          name: 'fru-astro-sprite',
+          imports: {
+            'virtual:fru-astro-sprite/sprites': `export default ${JSON.stringify(sprites)}`,
+          },
+        });
+        params.injectRoute({
+          pattern: rootUrl + '/[sprite].svg',
+          prerender: true,
+          entrypoint: '@fru/astro-sprite/src/astro-entry.ts',
+        });
+      },
+    },
+  };
+}

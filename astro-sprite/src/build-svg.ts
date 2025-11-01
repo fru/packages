@@ -1,30 +1,33 @@
 import { parse, stringify, type INode } from 'svgson';
 
-export interface SVGContent {
+export interface SVGIconContent {
   id: string;
   content: string;
 }
 
-export async function createSvg(icons: SVGContent[]): Promise<string> {
-  const iconNodes: INode[] = await Promise.all(
+type SvgGroupType = 'sprite' | 'stack';
+
+export async function buildSvgGroup(type: SvgGroupType, icons: SVGIconContent[]): Promise<string> {
+  const nodes: INode[] = await Promise.all(
     icons.map(async (icon) => {
       const node = await parse(icon.content);
-
-      delete node.attributes.width;
-      delete node.attributes.height;
-      delete node.attributes.xmlns;
-      delete node.attributes['xmlns:xlink'];
-
-      node.attributes.id = icon.id;
-
-      return node;
+      if (type === 'sprite') node.name = 'symbol';
+      return modifyAttributes(node, icon.id);
     }),
   );
 
-  return stringify(node({
-    ...root,
-    children: [style, ...iconNodes],
-  }));
+  const children = type === 'sprite' ? nodes : [style, ...nodes];
+  return stringify(node({ ...root, children }));
+}
+
+function modifyAttributes(node: INode, id: string) {
+  delete node.attributes.width;
+  delete node.attributes.height;
+  delete node.attributes.xmlns;
+  delete node.attributes['xmlns:xlink'];
+
+  node.attributes.id = id;
+  return node;
 }
 
 const root: Partial<INode> = {
