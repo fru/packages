@@ -12,11 +12,10 @@ export interface SpriteConfig {
 }
 
 export function serve(rootUrl: string, config: SpriteConfig[]): AstroIntegration {
-  const sprites = Object.fromEntries(
-    config.map(({ name, type, icons }) => {
-      return [name, buildSvgGroup(type, icons || [])];
-    }),
-  );
+  const sprites = config.map(({ name, type, icons }) => {
+    return [name, buildSvgGroup(type, icons || [])];
+  });
+  const stringified = JSON.stringify(Object.fromEntries(sprites));
 
   return {
     name: 'fru-astro-sprite',
@@ -25,7 +24,7 @@ export function serve(rootUrl: string, config: SpriteConfig[]): AstroIntegration
         addVirtualImports(params, {
           name: 'fru-astro-sprite',
           imports: {
-            'virtual:fru-astro-sprite/sprites': `export default ${JSON.stringify(sprites)}`,
+            'virtual:fru-astro-sprite/sprites': `export default ${stringified}`,
           },
         });
         params.injectRoute({
