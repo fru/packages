@@ -14,13 +14,9 @@ describe('Iconify Resolver Functionality', () => {
     aliases: {},
   };
 
-  it('creates a resolver function from an Iconify family definition', () => {
-    const resolver = buildIconifyResolver('test-family', mockFamilyDefinition);
-    expect(typeof resolver).toBe('function');
-  });
+  const resolver = buildIconifyResolver('test-family', mockFamilyDefinition);
 
   it('transforms known icon names into their full SVG representations', () => {
-    const resolver = buildIconifyResolver('test-family', mockFamilyDefinition);
     const result = resolver(['icon1', 'icon2']);
 
     expect(result).toHaveLength(2);
@@ -31,21 +27,17 @@ describe('Iconify Resolver Functionality', () => {
   });
 
   it('filters out requests for icons that do not exist within the family', () => {
-    const resolver = buildIconifyResolver('test-family', mockFamilyDefinition);
     const result = resolver(['icon1', 'non-existent-icon', 'icon2']);
-
     expect(result).toHaveLength(2);
     expect(result.map(item => item.id)).toEqual(['test-family--icon1', 'test-family--icon2']);
   });
 
   it('returns an empty list when no icons are requested', () => {
-    const resolver = buildIconifyResolver('test-family', mockFamilyDefinition);
     const result = resolver([]);
     expect(result).toEqual([]);
   });
 
   it('returns an empty list if only non-existent icons are requested', () => {
-    const resolver = buildIconifyResolver('test-family', mockFamilyDefinition);
     const result = resolver(['another-non-existent-icon']);
     expect(result).toEqual([]);
   });
