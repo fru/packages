@@ -1,21 +1,21 @@
 import type { AstroIntegration } from 'astro';
 import { addVirtualImports } from 'astro-integration-kit';
-import { buildSvgGroup, type SVGIconContent } from './build-svg';
+import { buildSvgGroup, type SpriteConfig } from './build-svg';
 
 export * from './build-iconify';
 export * from './build-svg';
 
-export interface SpriteConfig {
-  name: string;
-  type: 'sprite' | 'stack';
-  icons?: SVGIconContent[];
+export type SpriteFiles = Record<string, string>;
+
+export async function buildSvgFiles(config: SpriteConfig[]): Promise<SpriteFiles> {
+  const groups = config.map(async ({ name, type, icons }) => {
+    return [name, await buildSvgGroup(type, icons || [])];
+  });
+  return Object.fromEntries(await Promise.all(groups));
 }
 
-export function serve(rootUrl: string, config: SpriteConfig[]): AstroIntegration {
-  const sprites = config.map(({ name, type, icons }) => {
-    return [name, buildSvgGroup(type, icons || [])];
-  });
-  const stringified = JSON.stringify(Object.fromEntries(sprites));
+export function serve(rootUrl: string, files: SpriteFiles): AstroIntegration {
+  const groups = JSON.stringify(files);
 
   return {
     name: 'fru-astro-sprite',
@@ -24,7 +24,7 @@ export function serve(rootUrl: string, config: SpriteConfig[]): AstroIntegration
         addVirtualImports(params, {
           name: 'fru-astro-sprite',
           imports: {
-            'virtual:fru-astro-sprite/sprites': `export default ${stringified}`,
+            'virtual:fru-astro-sprite/sprites': `export default ${groups}`,
           },
         });
         params.injectRoute({

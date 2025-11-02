@@ -1,11 +1,17 @@
 import { parse, stringify, type INode } from 'svgson';
 
+export type SvgGroupType = 'sprite' | 'stack';
+
+export interface SpriteConfig {
+  name: string;
+  type: SvgGroupType;
+  icons?: SVGIconContent[];
+}
+
 export interface SVGIconContent {
   id: string;
   content: string;
 }
-
-type SvgGroupType = 'sprite' | 'stack';
 
 export async function buildSvgGroup(type: SvgGroupType, icons: SVGIconContent[]): Promise<string> {
   const nodes: INode[] = await Promise.all(
