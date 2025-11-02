@@ -51,6 +51,7 @@ describe('astro-sprite', () => {
       const config: SpriteConfig[] = [
         { name: 'icon-set-1', type: 'sprite', icons: icons1 },
         { name: 'icon-set-2', type: 'stack', icons: icons2 },
+        { name: 'icon-set-3', type: 'sprite' }, // Test case for undefined icons
       ];
 
       (buildSvgGroup as Mock).mockImplementation((type: SvgGroupType, icons: SVGIconContent[]) => {
@@ -59,13 +60,15 @@ describe('astro-sprite', () => {
 
       const result = await buildSvgFiles(config);
 
-      expect(buildSvgGroup).toHaveBeenCalledTimes(2);
+      expect(buildSvgGroup).toHaveBeenCalledTimes(3);
       expect(buildSvgGroup).toHaveBeenCalledWith('sprite', icons1);
       expect(buildSvgGroup).toHaveBeenCalledWith('stack', icons2);
+      expect(buildSvgGroup).toHaveBeenCalledWith('sprite', []); // Expect empty array when icons is undefined
 
       expect(result).toEqual({
         'icon-set-1': '<svg>sprite: icon1 icon2</svg>',
         'icon-set-2': '<svg>stack: fa:icon3 fa:icon4</svg>',
+        'icon-set-3': '<svg>sprite: </svg>',
       });
     });
   });

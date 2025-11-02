@@ -44,7 +44,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "coverage": "vitest run --coverage --coverage.skipFull=true --coverage.reporter=text",
+    "coverage": "vitest run --coverage --coverage.reporter=text",
     "release": "release-it"
   },
   "devDependencies": {
