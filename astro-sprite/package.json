@@ -44,7 +44,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "coverage": "vitest run --coverage --coverage.reporter=text",
-    "release": "release-it"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
