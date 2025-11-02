@@ -67,7 +67,6 @@
 
   // Images: ".drawio.svg" ".excalidraw.svg"
   "svg.preview.background": "editor",
-  "excalidraw.workspaceLibraryPath": "./.vscode/excalidraw-library.json",
 
   // Markdown
   "markdown-preview-enhanced.enableScriptExecution": true
