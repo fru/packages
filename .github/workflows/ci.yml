@@ -1,0 +1,57 @@
+name: Monorepo CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test-coverage:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+          - astro-sprite
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check for changes in ${{ matrix.project }}
+        id: changes
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            ${{ matrix.project }}/**
+
+      - name: Build ${{ matrix.project }}
+        if: steps.changes.outputs.any_changed == 'true'
+        run: npm run build
+        working-directory: ${{ matrix.project }}
+
+      - name: Test ${{ matrix.project }}
+        if: steps.changes.outputs.any_changed == 'true'
+        run: npm run ci-test
+        working-directory: ${{ matrix.project }}
+
+      - name: Generate coverage report for ${{ matrix.project }}
+        if: steps.changes.outputs.any_changed == 'true'
+        run: npm run ci-coverage
+        working-directory: ${{ matrix.project }}
+
+      - name: Upload coverage to Coveralls
+        if: steps.changes.outputs.any_changed == 'true'
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ${{ matrix.project }}/coverage/lcov.info
