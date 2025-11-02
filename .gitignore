@@ -1,5 +1,6 @@
 # build
 dist/
+coverage/
 
 # dotnet
 [Bb]in/
