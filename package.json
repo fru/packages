@@ -4,5 +4,8 @@
   "version": "0.0.0",
   "workspaces": [
     "astro-sprite"
-  ]
+  ],
+  "devDependencies": {
+    "release-it": "^19.0.5"
+  }
 }
