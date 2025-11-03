@@ -16,6 +16,7 @@ Astro Sprite is an Astro integration that simplifies the use of SVG sprites in y
 npm install @fru/astro-sprite
 ```
 
+
 ## Usage
 
 ### Configuration
