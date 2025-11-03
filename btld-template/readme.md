@@ -1,5 +1,5 @@
 # btld-template
 
-[![Coverage Status](https://coveralls.io/repos/github/fru/packages/badge.svg?branch=main&flag_name=btld-template)](https://coveralls.io/github/fru/packages?branch=main&flag_name=btld-template)
+[![codecov](https://codecov.io/gh/fru/packages/branch/main/graph/badge.svg?token=YOUR_CODECOV_TOKEN)](https://codecov.io/gh/fru/packages)
 
 Tiny html template library!

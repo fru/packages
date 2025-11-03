@@ -48,11 +48,11 @@ jobs:
         run: npm run ci-coverage
         working-directory: ${{ matrix.project }}
 
-      - name: Upload coverage to Coveralls
+      - name: Upload coverage to Codecov
         if: steps.changes.outputs.any_changed == 'true'
-        uses: coverallsapp/github-action@v2
+        uses: codecov/codecov-action@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ matrix.project }}/coverage/lcov.info
-          flag-name: ${{ matrix.project }}
-          carryforward: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ matrix.project }}/coverage/lcov.info
+          flags: ${{ matrix.project }}
+          verbose: true
