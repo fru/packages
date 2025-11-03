@@ -20,8 +20,6 @@ npm install @fru/astro-sprite
 
 ### Configuration
 
-### Configuration
-
 First, create a file (e.g., `src/sprites.ts`) to define your sprite configuration and build the SVG files. This example demonstrates how to create two sprite stacks, `accordion` and `accordion-horizontal`, using icons from various Iconify collections.
 
 ```typescript
