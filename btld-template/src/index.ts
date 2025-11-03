@@ -3,5 +3,5 @@ export const helloWorld = () => {
 };
 
 export const test = () => {
-  return 'Hello World!';
+  return 'Hello World!!';
 };
