@@ -1,6 +1,6 @@
 # Astro Sprite
 
-[![codecov](https://codecov.io/gh/fru/packages/branch/main/graph/badge.svg?token=YOUR_CODECOV_TOKEN)](https://codecov.io/gh/fru/packages)
+[![codecov](https://codecov.io/gh/fru/packages/branch/main/graph/badge.svg?token=1UQCA5TV3E&flag=astro-sprite)](https://codecov.io/gh/fru/packages/tree/main/astro-sprite)
 
 Astro Sprite is an Astro integration that simplifies the use of SVG sprites in your Astro projects. It allows you to easily define and build SVG sprites from various icon sources, including Iconify collections.
 
