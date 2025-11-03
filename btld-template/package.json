@@ -1,10 +1,10 @@
 {
-  "version": "1.4.2",
-  "name": "@fru/astro-sprite",
-  "description": "Sprite-based SVGs in Astro",
+  "version": "0.0.1",
+  "name": "@btld/template",
+  "description": "Super tiny template rendering",
   "author": "Florian Rueberg",
   "license": "MIT",
-  "homepage": "rueberg.eu/astro-sprite",
+  "homepage": "rueberg.eu/btld",
   "publishConfig": {
     "access": "public"
   },
@@ -16,17 +16,10 @@
     "url": "https://github.com/fru/packages/issues"
   },
   "keywords": [
-    "SVG",
-    "Astro",
-    "Sprite",
-    "Spritesheet",
-    "Icon",
-    "Icons",
-    "Iconify"
+    "template"
   ],
   "files": [
-    "dist/**",
-    "src/astro-entry.ts"
+    "dist/**"
   ],
   "type": "module",
   "module": "./dist/index.mjs",
@@ -35,8 +28,7 @@
     ".": {
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.mts"
-    },
-    "./src/astro-entry.ts": "./src/astro-entry.ts"
+    }
   },
   "scripts": {
     "build": "unbuild",
@@ -53,13 +45,5 @@
     "unbuild": "^3.6.1",
     "vitest": "^4.0.5"
   },
-  "dependencies": {
-    "@iconify/types": "^2.0.0",
-    "@iconify/utils": "^3.0.2",
-    "svgson": "^5.3.1"
-  },
-  "peerDependencies": {
-    "astro": "^5.15.3",
-    "astro-integration-kit": "^0.19.1"
-  }
+  "dependencies": {}
 }
