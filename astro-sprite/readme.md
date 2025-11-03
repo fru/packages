@@ -1,6 +1,6 @@
 # Astro Sprite
 
-[![Coverage Status](https://coveralls.io/repos/github/fru/packages/badge.svg?branch=main)](https://coveralls.io/github/fru/packages?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/fru/packages/badge.svg?branch=main&flag_name=astro-sprite)](https://coveralls.io/github/fru/packages?branch=main&flag_name=astro-sprite)
 
 Astro Sprite is an Astro integration that simplifies the use of SVG sprites in your Astro projects. It allows you to easily define and build SVG sprites from various icon sources, including Iconify collections.
 

@@ -22,7 +22,8 @@
     "Spritesheet",
     "Icon",
     "Icons",
-    "Iconify"
+    "Iconify",
+    "Svg Stack"
   ],
   "files": [
     "dist/**",
