@@ -56,14 +56,3 @@ jobs:
           path-to-lcov: ${{ matrix.project }}/coverage/lcov.info
           flag-name: ${{ matrix.project }}
           carryforward: true
-          parallel: true
-
-  coveralls-finish:
-    needs: build-test-coverage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Coveralls Parallel Finished
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
