@@ -33,7 +33,7 @@ export function serve(rootUrl: string, files: SpriteFiles): AstroIntegration {
         params.injectRoute({
           pattern: rootUrl + '/[sprite].svg',
           prerender: true,
-          entrypoint: '@fru/astro-sprite/src/astro-entry.ts',
+          entrypoint: '@fru/astro-sprite/astro-entry.ts',
         });
       },
     },
