@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import sprites from 'virtual:fru-astro-sprite/sprites';
+import { sprites } from 'virtual:fru-astro-sprite/sprites';
 
 export async function getStaticPaths() {
   return Object.keys(sprites).map((sprite) => ({

@@ -24,7 +24,10 @@ export function serve(rootUrl: string, files: SpriteFiles): AstroIntegration {
         addVirtualImports(params, {
           name: 'fru-astro-sprite',
           imports: {
-            'virtual:fru-astro-sprite/sprites': `export default ${groups}`,
+            'virtual:fru-astro-sprite/sprites': `
+              export const sprites = ${groups};
+              export const rootUrl = "${rootUrl}";
+            `,
           },
         });
         params.injectRoute({

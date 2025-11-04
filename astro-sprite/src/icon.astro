@@ -1,0 +1,8 @@
+---
+import { rootUrl } from "virtual:fru-astro-sprite/sprites";
+const { href } = Astro.props;
+---
+
+<svg xmlns="http://www.w3.org/2000/svg">
+  <use href={rootUrl + "/" + href}></use>
+</svg>

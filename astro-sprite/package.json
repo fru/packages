@@ -1,5 +1,5 @@
 {
-  "version": "1.4.2",
+  "version": "1.5.0",
   "name": "@fru/astro-sprite",
   "description": "Sprite-based SVGs in Astro",
   "author": "Florian Rueberg",
@@ -27,7 +27,8 @@
   ],
   "files": [
     "dist/**",
-    "src/astro-entry.ts"
+    "src/astro-entry.ts",
+    "src/icon.astro"
   ],
   "type": "module",
   "module": "./dist/index.mjs",
@@ -37,7 +38,8 @@
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.mts"
     },
-    "./src/astro-entry.ts": "./src/astro-entry.ts"
+    "./src/astro-entry.ts": "./src/astro-entry.ts",
+    "./src/icon.astro": "./src/icon.astro"
   },
   "scripts": {
     "build": "unbuild",
