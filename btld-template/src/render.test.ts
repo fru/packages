@@ -13,8 +13,11 @@ describe('helloWorld', () => {
       Test
     `);
     const rendered = render(template);
-    console.log(norm(rendered));
-    expect(norm(rendered)).toContain(norm(template))
-    //expect(rendered.innerHTML).toMatch(/<div/);
+    expect(norm(rendered)).toContain(norm(`
+      <div>{{ person.firstname }}</div>
+      <div>{{ person.lastname }}</div>
+      <div>{{ person.@fullname }}</div>
+      Test
+    `))
   });
 });

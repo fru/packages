@@ -16,7 +16,9 @@ export function norm(html: string | DocumentFragment | HTMLTemplateElement | HTM
   }
   if (html instanceof HTMLElement) {
     collapse(html);
-    return norm(html.innerHTML);
+    return html.innerHTML;
   }
-  return html.trim().replace(/\s+/g, " ");
+  const tempContainer = document.createElement('div');
+  tempContainer.innerHTML = html;
+  return norm(tempContainer);
 }
