@@ -40,10 +40,12 @@
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
+    "@vitest/browser-playwright": "^4.0.7",
+    "@vitest/browser-preview": "^4.0.7",
     "@vitest/coverage-v8": "^4.0.6",
     "typescript": "~5.9.3",
     "unbuild": "^3.6.1",
-    "vitest": "^4.0.5"
-  },
-  "dependencies": {}
+    "vitest": "^4.0.7",
+    "collapse-whitespace": "^1.1.7"
+  }
 }

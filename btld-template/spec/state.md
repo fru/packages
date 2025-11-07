@@ -62,28 +62,7 @@ globalUtilFunctions({
 ## Helpers
 
 ```typescript
-type Func = (...args: unknown[]) => unknown;
 
-function isFunc(value: unknown): value is Func {
-  return typeof value === 'function';
-}
-
-type Primitive = string | number | boolean | bigint | null | undefined;
-
-function isPrimitive(value: unknown): value is Primitive {
-  if (value === null) return true;
-  return typeof value !== 'object' && !isFunc(value);
-}
-
-function existsOrAdd<T>(set: Set<T>, value: T): true | undefined {
-  if (set.has(value)) return true;
-  set.add(value);
-}
-
-function existsOrCreate<T>(map: Map<string, T>, key: string, creator: () => T): T {
-  if (!map.has(value)) map.set(key, creator());
-  return map.get(key)!; 
-}
 ```
 ## Btld State
 
