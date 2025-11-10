@@ -1,154 +1,55 @@
-# BTLD State
+# BTLD Reactive State
 
-TODO cleanup library description:
- - btld-state is used as a minimal state management library primarily for use in btld-template
- - reactive updates to dom
- - state tree mirrors dom 
+## Decisions + Listed Consequences
 
-## Accessor Path Parsing
+### Precisely track what exactly changes
+- Less updates to the dom
+- More individual listeners for each state
 
-```typescript
-interface PathSegement {
-  segment: string,
-  isUtilFunc: boolean
-}
+### State is a tree, without cycles
+- Support data types: primitives, objects, arrays and functions
 
-type Path = PathSegement[];
+### State closely mirrors what needs to be rendered
 
-const cache = new Map<string, Path>();
+### Recording what state is used in a function is not needed
+- Buildin functions that reflect state to the dom have very explicit dependencies
+- Computed functions define there dependencies, e.g. useState(path) that is only recorded once
 
-function parsePath(path: string): Path {
-  const parse = () => Object.freeze(path.split('.').map(parseSegment));
-  return existsOrCreate(cache, path, parse);
-}
+### Array Sort, Insert, Delete, should not trigger all deep listeners
+- The listerns miror what actually needs to transform in the dom
+- Problem *index*: array.2.value should it trigger when item at index 2 moves to index 1?
 
-function parseSegment(segment: string): PathSegement {
-  const isUtilFunc = rawSegment.startsWith('@');
-  return Object.freeze({ segment, isUtilFunc });
-}
-```
+### There are no listeners for individual array indices, only for all array items
+- The internal listener path would be more like array.*.value
+- The change listener now gets the index where the change happened
+- When an item is moved only listeners for the path "array.*" are triggered, this solves Problem *index* 
+- Deep arrays are supported: array.\*.array2.\*.value *or* array.\*.\*.value 
 
-## Utility Function Registy
+### Listened to dependencies, should not need to be recalculated
+- array[index] would mean the listener location would change when "index" changes
+- arbritary computed functions would mean listeners need recalculation on every call
 
-```typescript
+### Relative "paths" can be used to access state
+- Path can start with @root or multiple @parent "segments"
 
-type Computed<T extends BtldState[]> = {
-  watch: T,
-  value: (...args: T) => unknown
-}
+### Path can be made up of dot seperated segments
+- @root.some.path.to.value 
+- Array index are constants array.2.value 
 
-type UtilFunc = (state: BtldState, el: HTMLElement) => BtldState | Computed;
+### Watching a deep subtree is needed when this is passed to another framework or component
+- Data that is passed needs to be frozen, be a copy or have a readonly proxy
+- Example *subtree*: \<JsonRenderer bind="data: @root.subtree" />
 
-const registry = new Map<string, Func>();
+### Setting a property to undefined can affect all listeners deep in the tree
+- need to iterate deep listeners, when an object or array converts to primitive
 
-export function globalUtilFunctions(definitions: Record<string, UtilityFunction>) {
-  for (const [name, func] of Object.entries(definitions)) {
-    registry.set(name, func);
-  }
-}
 
-globalUtilFunctions({
-  '@fullname': (state) = ({
-    watch: [
-      state.get('firstname'), 
-      state.get('lastname')
-    ],
-    value: (first, last) => `${first} ${last}`,
-  })
-});
+## Name all needed recursions / loops
 
-```
+## Name all functions
 
-## Helpers
+## Interface Design
 
 ```typescript
 
 ```
-## Btld State
-
-```typescript
-
-enum StateType {
-  Value = 1,
-  Deleted = 2,
-  Array = 3,
-  Object = 4,
-}
-
-class BtldState {
-  
-  readonly _root: BtldState;
-  readonly _parent: BtldState | null;
-  readonly _segment: string | null;
-
-  private constructor(parent: BtldState | null, segement: string | null) {
-    this._parent = parent;
-    this._segment = segement;
-    this._root = parent ? parent._root : this;
-  }
-  
-  _props?: Map<string, BtldState>;
-  _array?: BtldState[];
-  _length: number = 0;
-
-  _existsOrCreateProp(key: string): BtldState {
-    const creator = () => new BtldState(this, key);
-    return existsOrCreate(this._children ??= new Map(), key, creator);
-  }
-
-  _setArrayLength(length: number) {
-    this._length = length;
-
-    // TODO 
-  }
-
-  _type: StateType = StateType.Value;
-  _value: Primitive | Func;
-  
-
-  value(): unknown {
-    if (this._type === StateType.Value) return this._value;
-    if (this._type === StateType.Deleted) return undefined;
-    if (this._type === StateType.Array) {
-      return new Array(this._length).map((_, i) => this._existsOrCreateChild(i).value());
-    }
-    if (this._type === StateType.Object) {
-      const obj: Record<string, unknown> = {};
-      for (const [key, child] of this._children.entries()) {
-        if (child._type !== StateType.Deleted) obj[key] = child.value();
-      }
-      return obj;
-    }
-  }
-
-  set(value: unknown, avoid_loops: Set<unknown> = new Set()): void {
-    if (existsOrAdd(avoid_loops, value)) return;
-
-    if (isPrimitive(value) || isFunc(value)) {
-      this._value = value;
-      this._type = StateType.Value;
-    } else {
-      this._value = this._hasValue = undefined;
-      this._arrayLength
-      
-      = Array.isArray(value);
-
-      const keys = new Set(Object.keys(value));
-
-      for (const key of keys) {
-        this._ensureChild(key).set(value[key], avoid_loops);
-      }
-
-      for (const key of this._children.keys()) {
-        if (!keys.has(key)) this._children.get(key)!.set(undefined);
-      }
-    }
-  }
-
-  get(path: string): BtldState {
-
-
-  }
-
-
-}
