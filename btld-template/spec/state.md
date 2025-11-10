@@ -55,9 +55,10 @@
 - easier to remove listeners
 - no need to start iterating subtree to add deep listeners
 
-### Disallowed: object with numbers for property names
+### Disallow object with numbers for property names
 - that would mean array path segments cant be easily distinguished from object properties
 - listeners at x.\*.value would be triggered for deep object x.1.value
+- otherwise *.2 has to be a valid listener path
 
 ### The state needs to be fully typed
 - This would allow btld templates to be compiled to tsx as a react component but still use btld state
