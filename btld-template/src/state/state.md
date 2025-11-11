@@ -27,6 +27,7 @@
 
 ### There are only listeners at array.\*.\*.value
 - No need to check array.2.5.value array.2.\*.value or array.\*.5.value for listeners
+- otherwise moving an item would have to iterate deeper nodes to find the listeners at specific indices
 
 ### Listened to dependencies, should not need to be recalculated
 - array[index] would mean the listener location would change when "index" changes
@@ -74,4 +75,3 @@
 - properties: set of (string key for every object or array property - like "0" or length)
 - path: path segments to this node
 - path_abstract_array_shared_listeners: for x.2.3 this would be x.\*.\*
-
