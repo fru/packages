@@ -1,4 +1,4 @@
-import { Func, Primitive } from "./helper";
+import { Func, Primitive, isPrimitive, isFunc } from "./helper";
 
 // Normalized path, starting at root no @ utility functions
 type NormalizedPath = string & { _guard: never };
@@ -7,18 +7,55 @@ type Listener = Func;
 
 const $object = Symbol("object");
 const $array = Symbol("array");
-const $deleted = Symbol("deleted");
 
-type StateType = typeof $object | typeof $array | typeof $deleted;
+type StateType = typeof $object | typeof $array;
 
-interface StateNode {
+type WasChanged = boolean;
+
+class StateNode {
   data: Primitive | Func | StateType;
-  keys: Map<string, NormalizedPath>;
-  path: NormalizedPath;
+  keys?: Map<string, StateNode>;
+  listener?: Set<Listener>;
 
-  listenerThis: Set<Listener>;
-  listenerDeep: Set<Listener>;
+  constructor(public readonly path: NormalizedPath) {}
+  
+  proxy(): unknown {
+    if (this.data !== $object && this.data !== $array) return this.data;
+
+    const get = (_: unknown, p: string) => this.keys?.get(p)?.proxy();
+    const ownKeys = () => Array.from(this.keys?.keys() ?? []);
+    const getOwnPropertyDescriptor = () => ({ enumerable: true, configurable: true });
+
+    if (this.data === $array) return new Proxy([], { get });
+    return new Proxy({}, { get, ownKeys, getOwnPropertyDescriptor });
+  }
+
+  ensure(type: StateType): WasChanged {
+
+  }
+
+  set(value: unknown): WasChanged {
+    
+    if (isPrimitive(value) || isFunc(value)) {
+      if (this.data === value) return false;
+      if (this.data === $object || this.data === $array) {
+        // set all keys to undefined
+
+      }
+      return true;
+    } else {
+      const changes = false;
+      for (const key of this.keys?.keys() ?? []) {
+        // if any children have changed also add listener to output
+      }
+      return changes;
+    }
+  }
 }
+
+
+
+
 
 function join(path: NormalizedPath, segment: string | number): NormalizedPath {
   return (path + '.' + segment) as NormalizedPath;
@@ -27,6 +64,12 @@ function join(path: NormalizedPath, segment: string | number): NormalizedPath {
 class State<T> {
   // Flat map of all state nodes anywhere under root
   _store = new Map<NormalizedPath, StateNode>();
+
+  proxy() {
+    if ()
+  }
+
+
 
   set(path: NormalizedPath, value: unknown): void {
     // iterate down from root:
@@ -68,7 +111,7 @@ class State<T> {
       (stored.listenerThis ??= new Set()).add(listener);
     }
   }
-  proxy(path: NormalizedPath = '' as NormalizedPath): unknown {
+  proxy_old(path: NormalizedPath = '' as NormalizedPath): unknown {
     const { data, keys } = this._store.get(path)!;
     if (data === $deleted) return undefined;
     if (data === $array) {
