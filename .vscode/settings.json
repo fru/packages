@@ -31,12 +31,25 @@
 
   "files.associations": {
     "*.css": "tailwindcss",
+    "*.lint.css": "css",
     "wrangler.json": "jsonc"
   },
 
   "workbench.editorAssociations": {
     "*.md": "default"
   },
+
+  // Use stylelint instead of prettier
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
+  "stylelint.enable": true,
+  "stylelint.validate": ["css", "astro"],
+  "stylelint.configFile": ".vscode/.stylelintrc.json",
+
+  // Sort CSS
+  "sortcss.sortingStrategy": "frakto",
+  "sortcss.sortOnSave": true,
 
   "prettier.configPath": ".vscode/.prettierrc",
   "prettier.ignorePath": "../.gitignore",

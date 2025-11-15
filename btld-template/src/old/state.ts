@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Func, Primitive, isPrimitive, isFunc } from "./helper";
 
 // Normalized path, starting at root no @ utility functions

@@ -13,18 +13,22 @@
     "BeardedBear.beardedicons",
     "GitHub.github-vscode-theme",
 
-    // Language: JS + Frontend
+    // Language: JS + HTML
     "Angular.ng-template",
     "astro-build.astro-vscode",
-    "bradlc.vscode-tailwindcss",
     "unifiedjs.vscode-mdx",
     "attilabuti.vscode-mjml",
     "YoavBls.pretty-ts-errors",
     "christian-kohler.npm-intellisense",
     "christian-kohler.path-intellisense",
+    "bradlc.vscode-tailwindcss",
+    "tobermory.es6-string-html",
+
+    // Language: CSS
     "sibiraj-s.vscode-scss-formatter",
     "bashmish.es6-string-css",
-    "tobermory.es6-string-html",
+    "stylelint.vscode-stylelint",
+    "piyushsarkar.sort-css-properties",
 
     // Language: C#
     "ms-dotnettools.csharp",

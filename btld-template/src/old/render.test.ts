@@ -10,6 +10,13 @@ const person = {
   }
 };
 
+export function appendTemplate(innerHTML: string) {
+  const template = document.createElement('template');
+  document.body.appendChild(template);
+  template.innerHTML = innerHTML;
+  return template;
+}
+
 it('Template should render and update on data change', () => {
 
   const template = appendTemplate(`
