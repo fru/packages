@@ -1,13 +1,8 @@
-import { it, expect, bench } from 'vitest';
+import { it, expect } from 'vitest';
 
 function wrap<T>(data: T) {
   return { proxy: data, recorded: new Set() };
 }
-
-bench('sort', () => {
-  console.log('sorting');
-  expect(true).toBe(true);
-});
 
 it('Template should render and update on data change', () => {
   var { proxy, recorded } = wrap({
