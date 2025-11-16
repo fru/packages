@@ -11,12 +11,18 @@ export function isPrimitive(value: unknown): value is Primitive {
   return typeof value !== 'object' && !isFunc(value);
 }
 
+// guard - familiar - remembered - previouslySeen
 export function existsOrAdd<T>(set: Set<T>, value: T): true | undefined {
   if (set.has(value)) return true;
   set.add(value);
 }
 
-export function existsOrCreate<T>(map: Map<string, T>, key: string, creator: () => T): T {
-  if (!map.has(key)) map.set(key, creator());
-  return map.get(key)!; 
+export function cache<K extends object, V>(map: WeakMap<K, V>): (key: K, creator: () => V) => V;
+export function cache<K, V>(map: Map<K, V>): (key: K, creator: () => V) => V;
+
+export function cache(map: WeakMap<object, any> | Map<any, any>) {
+  return (key: any, creator: () => any) => {
+    if (!map.has(key)) map.set(key, creator());
+    return map.get(key)!;
+  };
 }
