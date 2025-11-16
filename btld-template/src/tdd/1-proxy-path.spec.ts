@@ -46,6 +46,13 @@ const api = Object.freeze({
     console.log('get', this[$path]);
   },
   set: function (this: StateProxyApi<any>, value: any) {
+    // const appliedListeners: (() => void)[] = [];
+    // this[$root].data = replacePath()
+    // const clone = cloneAndFreeze(value);
+    // replacePathAndFreeze(this[$root], this[$path], clone);
+
+    // Collect all listeners
+    //
     console.log('set', this[$path], value);
   },
 });
