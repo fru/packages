@@ -88,6 +88,16 @@
 - Edge cases: circular references, reusing the same object
 - Solution: Specific Modification Api that allows for changes similar to the required dom modifications
 
+### state.xyz.array.move(0, 0) is valid, it ensures the first element is at the correct position
+
+### on every state change the state is frozen
+
+- No significant performance disadvantage, parents have to be iterated anyway to get there deep listeners
+
+### index and length are not accessible in the state tree.
+
+- They cant be used in templates unless explicitly added to state data
+
 ## Name all needed recursions / loops
 
 ## Name all functions
