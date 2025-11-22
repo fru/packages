@@ -28,8 +28,9 @@ it('Template should render and update on data change', () => {
 
 const $path = Symbol('path');
 const $root = Symbol('root');
+const $data = Symbol('data');
 
-type StateRoot = { data: unknown };
+type StateRoot = { [$data]: unknown };
 
 interface StateProxyApiMethods<T> {
   $path(this: StateProxyApi<any>, segments: string[]): StateProxyApi<unknown>;
@@ -41,47 +42,109 @@ interface StateProxyApiMethods<T> {
   $listen(this: StateProxyApi<any>, listener: Listener<T>): void;
 }
 
+type Path = readonly string[];
+type Callbacks = (() => void)[];
+
 interface StateProxyApi<T> extends StateProxyApiMethods<T> {
-  [$path]: string[];
+  [$path]: Path;
   [$root]: StateRoot;
 }
 
-function iterateGet(path: string[], data: any, index: number = 0) {
-  if (typeof data !== 'object' || data === null) return undefined;
-  if (index === path.length) return data;
-  return iterateGet(path, data[path[index]], index + 1);
+export function isObjectType(value: unknown): boolean {
+  return typeof value === 'object' && value !== null;
 }
 
 function isIndex(segment: string) {
   return Number.isInteger(Number(segment)) && Number(segment) >= 0;
 }
 
-function replaceNode(segment: string, frozen: any) {
-  const isArray = isIndex(segment);
-  const isSameType = isArray === Array.isArray(frozen);
-  if (!isSameType) return isArray ? [] : {};
-  return isArray ? [...frozen] : { ...frozen };
+function iterateGet(path: Path, parent: any, index = 0) {
+  if (path.length === index) return parent;
+  if (!isObjectType(parent)) return undefined;
+  return iterateGet(path, parent[path[index]], index + 1);
 }
 
-// Return type: root, leaf, listener
+function replaceNode(segment: string, node: any) {
+  const isArray = isIndex(segment);
+  if (isObjectType(node) && isArray === Array.isArray(node)) {
+    return isArray ? [...node] : { ...node };
+  }
+  return isArray ? [] : {};
+}
 
-function replaceAncestors(path: string[], frozen: any, index: number = 0) {}
+function buildListenerPath(prefix: string, segment: string) {
+  if (isIndex(segment)) segment = '*';
+  return prefix ? `${prefix}.${segment}` : segment;
+}
+
+// Input: path, listeners, data, listener path prefix, index
+// Output: root, leaf
 
 const methods: StateProxyApiMethods<any> = {
   $path: function (segments) {
-    return {
-      [$path]: [...this[$path], ...segments],
+    return Object.freeze({
+      [$path]: Object.freeze([...this[$path], ...segments]),
       [$root]: this[$root],
       ...api,
-    };
+    });
   },
   $get: function () {
-    return iterateGet(this[$path], this[$root].data);
+    return iterateGet(this[$path], this[$root][$data]);
   },
   $set: function (value) {
     const listeners: (() => void)[] = [];
 
-    //
+    // a.b.c
+
+    let prop = this[$path][0] || '';
+
+    let path = '';
+    let prev = this[$root][$data] as any;
+    let data = (this[$root][$data] = replaceNode(prop, prev));
+    console.log(`Listen: "${path}"`, prev, data);
+
+    for (const segment of this[$path].slice(1)) {
+      path = buildListenerPath(path, prop);
+      prev = (prev || undefined) && prev[prop];
+      data[prop] = replaceNode(segment, prev);
+      Object.freeze(data);
+      data = data[prop];
+      prop = segment;
+      console.log(`Listen: "${path}"`, prev, data);
+    }
+
+    segmentNext = this[$path][0]; // a
+    data = this[$root][$data] = replaceNode(segmentNext, prev);
+    Object.freeze(data);
+    data = this[$root][$data];
+
+    path = buildListenerPath(path, segmentNext);
+    segment = segmentNext;
+
+    prev = (prev || undefined) && prev[segment];
+
+    segmentNext = this[$path][1];
+    data = data[segment] = replaceNode(segmentNext, prev);
+    path = buildListenerPath(path, segment);
+    segment = segmentNext;
+    console.log(`Listen: "${path}"`, prev, data);
+    prev = (prev || undefined) && prev[segment];
+
+    segmentNext = this[$path][2];
+    data = data[segment] = replaceNode(segmentNext, prev);
+    path = buildListenerPath(path, segment);
+    segment = segmentNext;
+    console.log(`Listen: "${path}"`, prev, data);
+
+    for (const segment of this[$path].slice(1)) {
+      data = replaceNode(segment, prev);
+
+      prev = (prev || undefined) && prev[segment];
+
+      path = buildListenerPath(path, segment);
+    }
+
+    listeners.forEach((listener) => listener());
   },
   $delete: function (...keys) {},
   $move: function (from, to) {},
@@ -125,6 +188,6 @@ export function createProxy<T>(path: string[], root: StateRoot): StateProxy<T> {
 }
 
 export function createStateRoot<T>(): StateProxy<T> {
-  const root: StateRoot = { data: undefined };
+  const root: StateRoot = { [$data]: undefined };
   return createProxy<T>([], root);
 }
