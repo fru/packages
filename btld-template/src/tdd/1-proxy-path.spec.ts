@@ -1,4 +1,5 @@
 import { it, expect } from 'vitest';
+import { isObjectType } from './helper';
 
 it('Template should render and update on data change', () => {
   type Test = {
@@ -19,10 +20,10 @@ it('Template should render and update on data change', () => {
 
   const proxy = createStateRoot<Test>();
   const x = proxy.test2.array[1].test.i;
-  x.get();
-  proxy.test2.array[-1.5].test.i.get();
-  proxy.test3[1].test4.get();
-  proxy.test3[1].test4.set(true);
+  x.$get();
+  proxy.test2.array[-1.5].test.i.$get();
+  proxy.test3[1].test4.$get();
+  proxy.test3[1].test4.$set(true);
 });
 
 const $path = Symbol('path');
@@ -30,32 +31,65 @@ const $root = Symbol('root');
 
 type StateRoot = { data: unknown };
 
-type StateProxyApi<T> = {
+interface StateProxyApiMethods<T> {
+  $path(this: StateProxyApi<any>, segments: string[]): StateProxyApi<unknown>;
+  $get(this: StateProxyApi<any>): T;
+  $set(this: StateProxyApi<any>, value: T): void;
+  $delete(this: StateProxyApi<any>, ...keys: string[] | number[]): void;
+  $move(this: StateProxyApi<any>, from: number, to: number): void;
+  $append(this: StateProxyApi<any>, ...values: T[]): void;
+  $listen(this: StateProxyApi<any>, listener: Listener<T>): void;
+}
+
+interface StateProxyApi<T> extends StateProxyApiMethods<T> {
   [$path]: string[];
   [$root]: StateRoot;
-  get(): T;
-  set(value: T): void;
-  delete(...keys: string[] | number[]): void;
-  move(from: number, to: number): void;
-  append(...values: T[]): void;
-  listen(listener: Listener<T>): void;
+}
+
+function iterateGet(path: string[], data: any, index: number = 0) {
+  if (typeof data !== 'object' || data === null) return undefined;
+  if (index === path.length) return data;
+  return iterateGet(path, data[path[index]], index + 1);
+}
+
+function isIndex(segment: string) {
+  return Number.isInteger(Number(segment)) && Number(segment) >= 0;
+}
+
+function replaceNode(segment: string, frozen: any) {
+  const isArray = isIndex(segment);
+  const isSameType = isArray === Array.isArray(frozen);
+  if (!isSameType) return isArray ? [] : {};
+  return isArray ? [...frozen] : { ...frozen };
+}
+
+// Return type: root, leaf, listener
+
+function replaceAncestors(path: string[], frozen: any, index: number = 0) {}
+
+const methods: StateProxyApiMethods<any> = {
+  $path: function (segments) {
+    return {
+      [$path]: [...this[$path], ...segments],
+      [$root]: this[$root],
+      ...api,
+    };
+  },
+  $get: function () {
+    return iterateGet(this[$path], this[$root].data);
+  },
+  $set: function (value) {
+    const listeners: (() => void)[] = [];
+
+    //
+  },
+  $delete: function (...keys) {},
+  $move: function (from, to) {},
+  $append: function (...values) {},
+  $listen: function (listener) {},
 };
 
-const api = Object.freeze({
-  get: function (this: StateProxyApi<any>) {
-    console.log('get', this[$path]);
-  },
-  set: function (this: StateProxyApi<any>, value: any) {
-    // const appliedListeners: (() => void)[] = [];
-    // this[$root].data = replacePath()
-    // const clone = cloneAndFreeze(value);
-    // replacePathAndFreeze(this[$root], this[$path], clone);
-
-    // Collect all listeners
-    //
-    console.log('set', this[$path], value);
-  },
-});
+const api = Object.freeze(methods);
 
 type Primitive = string | number | boolean | bigint | null | undefined;
 type Value = Primitive | Function;

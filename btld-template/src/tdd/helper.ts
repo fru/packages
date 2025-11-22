@@ -11,6 +11,10 @@ export function isPrimitive(value: unknown): value is Primitive {
   return typeof value !== 'object' && !isFunc(value);
 }
 
+export function isObjectType(value: unknown): value is object {
+  return typeof value === 'object' && value !== null;
+}
+
 // guard - familiar - remembered - previouslySeen
 export function existsOrAdd<T>(set: Set<T>, value: T): true | undefined {
   if (set.has(value)) return true;
