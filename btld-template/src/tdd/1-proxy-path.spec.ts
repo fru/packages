@@ -113,37 +113,6 @@ const methods: StateProxyApiMethods<any> = {
       console.log(`Listen: "${path}"`, prev, data);
     }
 
-    segmentNext = this[$path][0]; // a
-    data = this[$root][$data] = replaceNode(segmentNext, prev);
-    Object.freeze(data);
-    data = this[$root][$data];
-
-    path = buildListenerPath(path, segmentNext);
-    segment = segmentNext;
-
-    prev = (prev || undefined) && prev[segment];
-
-    segmentNext = this[$path][1];
-    data = data[segment] = replaceNode(segmentNext, prev);
-    path = buildListenerPath(path, segment);
-    segment = segmentNext;
-    console.log(`Listen: "${path}"`, prev, data);
-    prev = (prev || undefined) && prev[segment];
-
-    segmentNext = this[$path][2];
-    data = data[segment] = replaceNode(segmentNext, prev);
-    path = buildListenerPath(path, segment);
-    segment = segmentNext;
-    console.log(`Listen: "${path}"`, prev, data);
-
-    for (const segment of this[$path].slice(1)) {
-      data = replaceNode(segment, prev);
-
-      prev = (prev || undefined) && prev[segment];
-
-      path = buildListenerPath(path, segment);
-    }
-
     listeners.forEach((listener) => listener());
   },
   $delete: function (...keys) {},
