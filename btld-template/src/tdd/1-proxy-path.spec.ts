@@ -113,6 +113,12 @@ const methods: StateProxyApiMethods<any> = {
       console.log(`Listen: "${path}"`, prev, data);
     }
 
+    // todo freeze value
+    data[prop] = value;
+    Object.freeze(data);
+    path = buildListenerPath(path, prop);
+    console.log(`Listen: "${path}"`, prev, data);
+
     listeners.forEach((listener) => listener());
   },
   $delete: function (...keys) {},
