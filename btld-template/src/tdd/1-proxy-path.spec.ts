@@ -100,9 +100,9 @@ const methods: StateProxyApiMethods<any> = {
     let prop = '';
     let shape = '';
     let indices: number[] = [];
-    let dummy: any = { '': this[$root][$data] };
-    let prev: any = dummy;
-    let data: any = dummy;
+    let root_dummy: any = { '': this[$root][$data] };
+    let prev: any = root_dummy;
+    let data: any = root_dummy;
 
     function updateData(value: any) {
       if (isIndex(prop)) indices.push(Number(prop));
@@ -130,7 +130,7 @@ const methods: StateProxyApiMethods<any> = {
     // TODO updateListener but with details
     // TODO deep iterator for data and prev to trigger listeners
 
-    this[$root][$data] = dummy[''];
+    this[$root][$data] = root_dummy[''];
     listeners.forEach((listener) => listener());
   },
   $delete: function (...keys) {},
