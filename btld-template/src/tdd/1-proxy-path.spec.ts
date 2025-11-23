@@ -1,5 +1,4 @@
 import { it, expect } from 'vitest';
-import { isObjectType } from './helper';
 
 it('Template should render and update on data change', () => {
   type Test = {
@@ -24,6 +23,8 @@ it('Template should render and update on data change', () => {
   proxy.test2.array[-1.5].test.i.$get();
   proxy.test3[1].test4.$get();
   proxy.test3[1].test4.$set(true);
+  proxy.test3[0].test4.$set(false);
+  console.log(proxy.$get());
 });
 
 const $path = Symbol('path');
@@ -43,7 +44,6 @@ interface StateProxyApiMethods<T> {
 }
 
 type Path = readonly string[];
-type Callbacks = (() => void)[];
 
 interface StateProxyApi<T> extends StateProxyApiMethods<T> {
   [$path]: Path;
@@ -51,11 +51,17 @@ interface StateProxyApi<T> extends StateProxyApiMethods<T> {
 }
 
 export function isObjectType(value: unknown): boolean {
-  return typeof value === 'object' && value !== null;
+  return !!value && typeof value === 'object';
+}
+
+function cloneFreeze<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value), (_, v) => {
+    return isObjectType(v) ? Object.freeze(v) : v;
+  });
 }
 
 function isIndex(segment: string) {
-  return Number.isInteger(Number(segment)) && Number(segment) >= 0;
+  return segment && Number.isInteger(Number(segment)) && Number(segment) >= 0;
 }
 
 function iterateGet(path: Path, parent: any, index = 0) {
@@ -72,13 +78,10 @@ function replaceNode(segment: string, node: any) {
   return isArray ? [] : {};
 }
 
-function buildListenerPath(prefix: string, segment: string) {
+function buildPathShape(prefix: string, segment: string) {
   if (isIndex(segment)) segment = '*';
   return prefix ? `${prefix}.${segment}` : segment;
 }
-
-// Input: path, listeners, data, listener path prefix, index
-// Output: root, leaf
 
 const methods: StateProxyApiMethods<any> = {
   $path: function (segments) {
@@ -94,31 +97,40 @@ const methods: StateProxyApiMethods<any> = {
   $set: function (value) {
     const listeners: (() => void)[] = [];
 
-    // a.b.c
+    let prop = '';
+    let shape = '';
+    let indices: number[] = [];
+    let dummy: any = { '': this[$root][$data] };
+    let prev: any = dummy;
+    let data: any = dummy;
 
-    let prop = this[$path][0] || '';
+    function updateData(value: any) {
+      if (isIndex(prop)) indices.push(Number(prop));
+      shape = buildPathShape(shape, prop);
 
-    let path = '';
-    let prev = this[$root][$data] as any;
-    let data = (this[$root][$data] = replaceNode(prop, prev));
-    console.log(`Listen: "${path}"`, prev, data);
-
-    for (const segment of this[$path].slice(1)) {
-      path = buildListenerPath(path, prop);
-      prev = (prev || undefined) && prev[prop];
-      data[prop] = replaceNode(segment, prev);
+      data[prop] = value;
       Object.freeze(data);
-      data = data[prop];
-      prop = segment;
-      console.log(`Listen: "${path}"`, prev, data);
+      data = value;
     }
 
-    // todo freeze value
-    data[prop] = value;
-    Object.freeze(data);
-    path = buildListenerPath(path, prop);
-    console.log(`Listen: "${path}"`, prev, data);
+    function updateListener() {
+      const update = { prev, data, shape, indices: [...indices] };
+      listeners.push(() => console.log(update));
+    }
 
+    for (const segment of this[$path]) {
+      prev = (prev || undefined) && prev[prop];
+      updateData(replaceNode(segment, prev));
+      prop = segment;
+      updateListener();
+    }
+
+    updateData(cloneFreeze(value));
+    updateListener();
+    // TODO updateListener but with details
+    // TODO deep iterator for data and prev to trigger listeners
+
+    this[$root][$data] = dummy[''];
     listeners.forEach((listener) => listener());
   },
   $delete: function (...keys) {},
