@@ -23,8 +23,8 @@ it('Template should render and update on data change', () => {
   proxy.test2.array[-1.5].test.i.$get();
   proxy.test3[1].test4.$get();
   proxy.test3[1].test4.$set(true);
-  proxy.test3[0].test4.$set(false);
-  console.log(proxy.$get());
+  //proxy.test3[0].test4.$set(false);
+  //console.log(proxy.$get());
 });
 
 const $path = Symbol('path');
@@ -83,6 +83,10 @@ function buildPathShape(prefix: string, segment: string) {
   return prefix ? `${prefix}.${segment}` : segment;
 }
 
+function buildPathIndices(indices: number[], segment: string) {
+  return isIndex(segment) ? [...indices, Number(segment)] : indices;
+}
+
 const methods: StateProxyApiMethods<any> = {
   $path: function (segments) {
     return Object.freeze({
@@ -95,37 +99,42 @@ const methods: StateProxyApiMethods<any> = {
     return iterateGet(this[$path], this[$root][$data]);
   },
   $set: function (value) {
-    const listeners: (() => void)[] = [];
+    let root_dummy: any = { '': this[$root][$data] };
+    let ctx = {
+      prev: root_dummy,
+      data: root_dummy,
+      shape: '',
+      indices: [] as number[],
+    };
 
     let prop = '';
-    let shape = '';
-    let indices: number[] = [];
-    let root_dummy: any = { '': this[$root][$data] };
-    let prev: any = root_dummy;
-    let data: any = root_dummy;
+    const prev_child = () => (ctx.prev || undefined) && ctx.prev[prop];
+    const listeners: (() => void)[] = [];
 
-    function updateData(value: any) {
-      if (isIndex(prop)) indices.push(Number(prop));
-      shape = buildPathShape(shape, prop);
+    function updateCtx(value: any) {
+      ctx.data[prop] = value;
+      Object.freeze(ctx.data);
 
-      data[prop] = value;
-      Object.freeze(data);
-      data = value;
+      ctx = {
+        prev: prev_child(),
+        data: value,
+        shape: buildPathShape(ctx.shape, prop),
+        indices: buildPathIndices(ctx.indices, prop),
+      };
     }
 
     function updateListener() {
-      const update = { prev, data, shape, indices: [...indices] };
+      const update = ctx;
       listeners.push(() => console.log(update));
     }
 
     for (const segment of this[$path]) {
-      prev = (prev || undefined) && prev[prop];
-      updateData(replaceNode(segment, prev));
+      updateCtx(replaceNode(segment, prev_child()));
       prop = segment;
       updateListener();
     }
 
-    updateData(cloneFreeze(value));
+    updateCtx(cloneFreeze(value));
     updateListener();
     // TODO updateListener but with details
     // TODO deep iterator for data and prev to trigger listeners
