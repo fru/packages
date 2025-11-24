@@ -24,7 +24,7 @@ it('Template should render and update on data change', () => {
   proxy.test3[1].test4.$get();
   proxy.test3[1].test4.$set(true);
   //proxy.test3[0].test4.$set(false);
-  //console.log(proxy.$get());
+  console.log(proxy.$get());
 });
 
 const $path = Symbol('path');
@@ -70,21 +70,36 @@ function iterateGet(path: Path, parent: any, index = 0) {
   return iterateGet(path, parent[path[index]], index + 1);
 }
 
-function replaceNode(segment: string, node: any) {
-  const isArray = isIndex(segment);
+function replaceNode(prop: string, node: any) {
+  const isArray = isIndex(prop);
   if (isObjectType(node) && isArray === Array.isArray(node)) {
     return isArray ? [...node] : { ...node };
   }
   return isArray ? [] : {};
 }
 
-function buildPathShape(prefix: string, segment: string) {
-  if (isIndex(segment)) segment = '*';
-  return prefix ? `${prefix}.${segment}` : segment;
+function buildLocation(prop: string, l: Location = { glob: '', idxs: [] }) {
+  const seperator = l.glob && prop ? '.' : '';
+  const glob = l.glob + seperator + (isIndex(prop) ? '*' : prop);
+  const idxs = isIndex(prop) ? [...l.idxs, Number(prop)] : l.idxs;
+  return { idxs, glob };
 }
 
-function buildPathIndices(indices: number[], segment: string) {
-  return isIndex(segment) ? [...indices, Number(segment)] : indices;
+function iterateSet(parent: SetEvent<any>, listener: Func[], path: Path, value: any, i = 0) {
+  const { root } = parent;
+  const prop = i > 0 ? path[i - 1] : '';
+  const prev = isObjectType(parent.prev) ? parent.prev[prop] : undefined;
+  const next = i === path.length ? value : replaceNode(path[i], prev);
+  console.log(prop, next);
+
+  parent.next[prop] = next;
+  Object.freeze(parent.next);
+
+  const event = { ...buildLocation(prop, parent), root, prev, next };
+  //listener.push(() => console.log(event));
+
+  if (i === path.length) return event;
+  return iterateSet(event, listener, path, value, i + 1);
 }
 
 const methods: StateProxyApiMethods<any> = {
@@ -99,43 +114,23 @@ const methods: StateProxyApiMethods<any> = {
     return iterateGet(this[$path], this[$root][$data]);
   },
   $set: function (value) {
-    let root_dummy: any = { '': this[$root][$data] };
-    let ctx = {
-      prev: root_dummy,
-      data: root_dummy,
-      shape: '',
-      indices: [] as number[],
-    };
+    value = cloneFreeze(value);
 
-    let prop = '';
-    const prev_child = () => (ctx.prev || undefined) && ctx.prev[prop];
+    const root_dummy: any = { '': this[$root][$data] };
     const listeners: (() => void)[] = [];
 
-    function updateCtx(value: any) {
-      ctx.data[prop] = value;
-      Object.freeze(ctx.data);
-
-      ctx = {
-        prev: prev_child(),
-        data: value,
-        shape: buildPathShape(ctx.shape, prop),
-        indices: buildPathIndices(ctx.indices, prop),
-      };
-    }
-
-    function updateListener() {
-      const update = ctx;
-      listeners.push(() => console.log(update));
-    }
-
-    for (const segment of this[$path]) {
-      updateCtx(replaceNode(segment, prev_child()));
-      prop = segment;
-      updateListener();
-    }
-
-    updateCtx(cloneFreeze(value));
-    updateListener();
+    const event = iterateSet(
+      {
+        root: this[$root],
+        prev: root_dummy,
+        next: root_dummy,
+        glob: '',
+        idxs: [],
+      },
+      listeners,
+      this[$path],
+      value,
+    );
     // TODO updateListener but with details
     // TODO deep iterator for data and prev to trigger listeners
 
@@ -161,15 +156,21 @@ export type StateProxy<T> = StateProxyApi<T> & {
   [K in Extract<keyof Keyed<T>, string | number>]: StateProxy<Keyed<T>[K]>;
 };
 
-interface Update<T> {
+interface Location {
+  idxs: number[];
+  glob: string;
+}
+
+interface SetEvent<T> extends Location {
+  root: StateRoot;
   prev: T;
-  data: T; // type could be StateView<T> ?
-  shape: string;
-  indices: number[];
+  next: T;
   //details: { } array modifications
 }
 
-type Listener<T> = (update: Update<T>) => void;
+type Func = () => void;
+
+type Listener<T> = (update: SetEvent<T>) => void;
 
 export function createProxy<T>(path: string[], root: StateRoot): StateProxy<T> {
   const traps = {
