@@ -85,7 +85,7 @@ function buildLocation(prop: string, l: Location = { glob: '', idxs: [] }) {
   return { idxs, glob };
 }
 
-function iterateSet(parent: SetEvent<any>, listener: Func[], path: Path, value: any, i = 0) {
+function iterateSet(parent: SetEvent<any>, path: Path, value: any, i = 0): SetEvent<any>[] {
   const { root } = parent;
   const prop = i > 0 ? path[i - 1] : '';
   const prev = isObjectType(parent.prev) ? parent.prev[prop] : undefined;
@@ -96,10 +96,9 @@ function iterateSet(parent: SetEvent<any>, listener: Func[], path: Path, value: 
   Object.freeze(parent.next);
 
   const event = { ...buildLocation(prop, parent), root, prev, next };
-  //listener.push(() => console.log(event));
 
-  if (i === path.length) return event;
-  return iterateSet(event, listener, path, value, i + 1);
+  if (i === path.length) return [event];
+  return [event, ...iterateSet(event, path, value, i + 1)];
 }
 
 const methods: StateProxyApiMethods<any> = {
@@ -116,26 +115,17 @@ const methods: StateProxyApiMethods<any> = {
   $set: function (value) {
     value = cloneFreeze(value);
 
-    const root_dummy: any = { '': this[$root][$data] };
-    const listeners: (() => void)[] = [];
+    const root = this[$root];
+    const dummy: any = { '': root[$data] };
+    const ctx = { root, prev: dummy, next: dummy, glob: '', idxs: [] };
 
-    const event = iterateSet(
-      {
-        root: this[$root],
-        prev: root_dummy,
-        next: root_dummy,
-        glob: '',
-        idxs: [],
-      },
-      listeners,
-      this[$path],
-      value,
-    );
+    const events = iterateSet(ctx, this[$path], value);
+
     // TODO updateListener but with details
     // TODO deep iterator for data and prev to trigger listeners
 
-    this[$root][$data] = root_dummy[''];
-    listeners.forEach((listener) => listener());
+    root[$data] = dummy[''];
+    events.forEach((event) => console.log(event));
   },
   $delete: function (...keys) {},
   $move: function (from, to) {},
