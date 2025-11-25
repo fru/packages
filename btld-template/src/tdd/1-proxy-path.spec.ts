@@ -78,27 +78,36 @@ function replaceNode(prop: string, node: any) {
   return isArray ? [] : {};
 }
 
-function buildLocation(prop: string, l: Location = { glob: '', idxs: [] }) {
+function buildLocation(prop: string, l: Location) {
   const seperator = l.glob && prop ? '.' : '';
   const glob = l.glob + seperator + (isIndex(prop) ? '*' : prop);
   const idxs = isIndex(prop) ? [...l.idxs, Number(prop)] : l.idxs;
   return { idxs, glob };
 }
 
-function iterateSet(parent: SetEvent<any>, path: Path, value: any, i = 0): SetEvent<any>[] {
+function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i = 0) {
   const { root } = parent;
   const prop = i > 0 ? path[i - 1] : '';
   const prev = isObjectType(parent.prev) ? parent.prev[prop] : undefined;
   const next = i === path.length ? value : replaceNode(path[i], prev);
-  console.log(prop, next);
 
   parent.next[prop] = next;
   Object.freeze(parent.next);
 
   const event = { ...buildLocation(prop, parent), root, prev, next };
+  updates.push(event);
 
-  if (i === path.length) return [event];
-  return [event, ...iterateSet(event, path, value, i + 1)];
+  if (i < path.length) iterateSet(event, updates, path, value, i + 1);
+}
+
+function iterateDeepEvents(parent: Event, updates: Event[]) {
+  const { next, prev } = parent;
+  const deleted = new Set(Object.keys(parent.prev));
+  const updated = [];
+  for (const key of Object.keys(parent.next)) {
+    deleted.delete(key);
+    if (parent.next[key] !== parent.prev[key]) updated.push(key);
+  }
 }
 
 const methods: StateProxyApiMethods<any> = {
@@ -115,17 +124,21 @@ const methods: StateProxyApiMethods<any> = {
   $set: function (value) {
     value = cloneFreeze(value);
 
+    const updates: Event[] = [];
     const root = this[$root];
     const dummy: any = { '': root[$data] };
     const ctx = { root, prev: dummy, next: dummy, glob: '', idxs: [] };
 
-    const events = iterateSet(ctx, this[$path], value);
+    iterateSet(ctx, updates, this[$path], value);
+    const last = updates.at(-1)!;
+
+    iterateDeepEvents(last, updates);
 
     // TODO updateListener but with details
     // TODO deep iterator for data and prev to trigger listeners
 
     root[$data] = dummy[''];
-    events.forEach((event) => console.log(event));
+    updates.forEach((event) => console.log(event));
   },
   $delete: function (...keys) {},
   $move: function (from, to) {},
@@ -151,7 +164,7 @@ interface Location {
   glob: string;
 }
 
-interface SetEvent<T> extends Location {
+interface Event<T = any> extends Location {
   root: StateRoot;
   prev: T;
   next: T;
@@ -160,7 +173,7 @@ interface SetEvent<T> extends Location {
 
 type Func = () => void;
 
-type Listener<T> = (update: SetEvent<T>) => void;
+type Listener<T> = (update: Event<T>) => void;
 
 export function createProxy<T>(path: string[], root: StateRoot): StateProxy<T> {
   const traps = {
