@@ -39,7 +39,7 @@ interface StateProxyApiMethods<T> {
   $set(this: StateProxyApi<any>, value: T): void;
   $delete(this: StateProxyApi<any>, ...keys: string[] | number[]): void;
   $move(this: StateProxyApi<any>, from: number, to: number): void;
-  $append(this: StateProxyApi<any>, ...values: T[]): void;
+  $insert(this: StateProxyApi<any>, to: number, ...values: T[]): void;
   $listen(this: StateProxyApi<any>, listener: Listener<T>): void;
 }
 
@@ -78,11 +78,11 @@ function replaceNode(prop: string, node: any) {
   return isArray ? [] : {};
 }
 
-function buildLocation(prop: string, l: Location) {
-  const seperator = l.glob && prop ? '.' : '';
-  const glob = l.glob + seperator + (isIndex(prop) ? '*' : prop);
-  const idxs = isIndex(prop) ? [...l.idxs, Number(prop)] : l.idxs;
-  return { idxs, glob };
+function build(parent: Location, prop: string, prev: any = undefined, next: any = undefined) {
+  const seperator = parent.glob && prop ? '.' : '';
+  const glob = parent.glob + seperator + (isIndex(prop) ? '*' : prop);
+  const idxs = isIndex(prop) ? [...parent.idxs, Number(prop)] : parent.idxs;
+  return { root: parent.root, idxs, glob, prev, next };
 }
 
 function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i = 0) {
@@ -94,20 +94,28 @@ function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i =
   parent.next[prop] = next;
   Object.freeze(parent.next);
 
-  const event = { ...buildLocation(prop, parent), root, prev, next };
+  const event = build(parent, prop, prev, next);
   updates.push(event);
 
   if (i < path.length) iterateSet(event, updates, path, value, i + 1);
 }
 
-function iterateDeepEvents(parent: Event, updates: Event[]) {
-  const { next, prev } = parent;
-  const deleted = new Set(Object.keys(parent.prev));
-  const updated = [];
-  for (const key of Object.keys(parent.next)) {
+function iterateDeepEvents(parent: Event, updates: Event[] = [], key: string) {
+  const { prev, next } = parent;
+
+  const count = updates.length;
+  const deleted = new Set(Object.keys(prev));
+
+  for (const key of Object.keys(next)) {
     deleted.delete(key);
-    if (parent.next[key] !== parent.prev[key]) updated.push(key);
+    if (next[key] === prev[key]) continue;
+    iterateDeepEvents(build(parent, key, prev[key], next[key]), updates);
   }
+  for (const key of deleted) {
+    iterateDeepEvents(build(parent, key, prev[key]), updates);
+  }
+
+  if (updates.length > count) updates.push(parent);
 }
 
 const methods: StateProxyApiMethods<any> = {
@@ -142,7 +150,7 @@ const methods: StateProxyApiMethods<any> = {
   },
   $delete: function (...keys) {},
   $move: function (from, to) {},
-  $append: function (...values) {},
+  $insert: function (to, ...values) {},
   $listen: function (listener) {},
 };
 
@@ -160,12 +168,12 @@ export type StateProxy<T> = StateProxyApi<T> & {
 };
 
 interface Location {
+  root: StateRoot;
   idxs: number[];
   glob: string;
 }
 
 interface Event<T = any> extends Location {
-  root: StateRoot;
   prev: T;
   next: T;
   //details: { } array modifications
