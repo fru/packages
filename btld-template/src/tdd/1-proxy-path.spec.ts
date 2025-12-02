@@ -139,9 +139,6 @@ const methods: StateProxyApiMethods<any> = {
 
     iterateDeepEvents(updates);
 
-    // TODO updateListener but with details
-    // TODO deep iterator for data and prev to trigger listeners
-
     root[$data] = dummy[''];
     updates.forEach((event) => console.log(event));
   },
