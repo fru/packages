@@ -100,22 +100,19 @@ function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i =
   if (i < path.length) iterateSet(event, updates, path, value, i + 1);
 }
 
-function iterateDeepEvents(parent: Event, updates: Event[] = [], key: string) {
+function iterateDeepEvents(updates: Event[] = []) {
+  const parent = updates.at(-1)!;
   const { prev, next } = parent;
+  if (!isObjectType(prev) && !isObjectType(next)) return;
+  const keys = [...Object.keys(prev), ...Object.keys(next)];
 
-  const count = updates.length;
-  const deleted = new Set(Object.keys(prev));
-
-  for (const key of Object.keys(next)) {
-    deleted.delete(key);
-    if (next[key] === prev[key]) continue;
-    iterateDeepEvents(build(parent, key, prev[key], next[key]), updates);
-  }
-  for (const key of deleted) {
-    iterateDeepEvents(build(parent, key, prev[key]), updates);
+  for (const k of new Set(keys)) {
+    if (prev?.[k] === next?.[k]) continue;
+    updates.push(build(parent, k, prev?.[k], next?.[k]));
+    iterateDeepEvents(updates);
   }
 
-  if (updates.length > count) updates.push(parent);
+  if (updates.at(-1)! === parent) updates.pop();
 }
 
 const methods: StateProxyApiMethods<any> = {
@@ -139,8 +136,9 @@ const methods: StateProxyApiMethods<any> = {
 
     iterateSet(ctx, updates, this[$path], value);
     const last = updates.at(-1)!;
+    if (last.next === last.prev) return;
 
-    iterateDeepEvents(last, updates);
+    iterateDeepEvents(updates);
 
     // TODO updateListener but with details
     // TODO deep iterator for data and prev to trigger listeners
