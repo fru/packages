@@ -86,7 +86,6 @@ function build(parent: Location, prop: string, prev: any = undefined, next: any 
 }
 
 function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i = 0) {
-  const { root } = parent;
   const prop = i > 0 ? path[i - 1] : '';
   const prev = isObjectType(parent.prev) ? parent.prev[prop] : undefined;
   const next = i === path.length ? value : replaceNode(path[i], prev);
