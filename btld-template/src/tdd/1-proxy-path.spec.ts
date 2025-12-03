@@ -30,6 +30,7 @@ it('Template should render and update on data change', () => {
 const $path = Symbol('path');
 const $root = Symbol('root');
 const $data = Symbol('data');
+const $frozen = Symbol('frozen');
 
 type StateRoot = { [$data]: unknown };
 
@@ -37,9 +38,6 @@ interface StateProxyApiMethods<T> {
   $path(this: StateProxyApi<any>, segments: string[]): StateProxyApi<unknown>;
   $get(this: StateProxyApi<any>): T;
   $set(this: StateProxyApi<any>, value: T): void;
-  $delete(this: StateProxyApi<any>, ...keys: string[] | number[]): void;
-  $move(this: StateProxyApi<any>, from: number, to: number): void;
-  $insert(this: StateProxyApi<any>, to: number, ...values: T[]): void;
   $listen(this: StateProxyApi<any>, listener: Listener<T>): void;
 }
 
@@ -54,10 +52,19 @@ export function isObjectType(value: unknown): boolean {
   return !!value && typeof value === 'object';
 }
 
-function cloneFreeze<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value), (_, v) => {
-    return isObjectType(v) ? Object.freeze(v) : v;
+function freeze<T>(value: T): T {
+  if (!isObjectType(value)) return value;
+  Object.defineProperty(value, $frozen, {
+    value: true,
+    enumerable: false,
+    writable: false,
+    configurable: false,
   });
+  return Object.freeze(value);
+}
+
+function cloneFreeze<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value), (_, v) => freeze(v));
 }
 
 function isIndex(segment: string) {
@@ -99,6 +106,13 @@ function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i =
   if (i < path.length) iterateSet(event, updates, path, value, i + 1);
 }
 
+function checkReorderedSetState(e: Event, k: any) {
+  if (!e.next?.[k]?.$frozen) return false;
+  if (!Array.isArray(e.prev) || !Array.isArray(e.next)) return false;
+  if (!e.prev.includes(e.next?.[k])) return false;
+  return (e.reordered = true);
+}
+
 function iterateDeepEvents(updates: Event[] = []) {
   const parent = updates.at(-1)!;
   const { prev, next } = parent;
@@ -107,6 +121,7 @@ function iterateDeepEvents(updates: Event[] = []) {
 
   for (const k of new Set(keys)) {
     if (prev?.[k] === next?.[k]) continue;
+    if (checkReorderedSetState(parent, k)) continue;
     updates.push(build(parent, k, prev?.[k], next?.[k]));
     iterateDeepEvents(updates);
   }
@@ -142,9 +157,6 @@ const methods: StateProxyApiMethods<any> = {
     root[$data] = dummy[''];
     updates.forEach((event) => console.log(event));
   },
-  $delete: function (...keys) {},
-  $move: function (from, to) {},
-  $insert: function (to, ...values) {},
   $listen: function (listener) {},
 };
 
@@ -170,6 +182,7 @@ interface Location {
 interface Event<T = any> extends Location {
   prev: T;
   next: T;
+  reordered?: true;
   //details: { } array modifications
 }
 
