@@ -2,28 +2,15 @@ import { it, expect } from 'vitest';
 
 it('Template should render and update on data change', () => {
   type Test = {
-    test2?: {
-      array: {
-        test: { i: number };
-        [key: string]: { i: number };
-      }[];
-    };
-    test3?:
-      | {
-          test4?: boolean;
-        }[]
-      | number;
-    test4: () => void;
-    test5: Date;
+    array: { v: number }[];
   };
 
-  const proxy = createStateRoot<Test>();
-  const x = proxy.test2.array[1].test.i;
-  x.$get();
-  proxy.test2.array[-1.5].test.i.$get();
-  proxy.test3[1].test4.$get();
-  proxy.test3[1].test4.$set(true);
-  //proxy.test3[0].test4.$set(false);
+  const proxy = createStateRoot<any>();
+  proxy.$set({
+    array: [{ v: 0 }, { v: 1 }, { v: 2 }, { v: 3 }],
+  });
+
+  proxy.array[0].$set(proxy.array[1].$get());
   console.log(proxy.$get());
 });
 
@@ -63,8 +50,14 @@ function freeze<T>(value: T): T {
   return Object.freeze(value);
 }
 
-function cloneFreeze<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value), (_, v) => freeze(v));
+function cloneFreeze(value: any) {
+  if (!isObjectType(value)) return value;
+  if (value[$frozen]) return value;
+  const result: any = Array.isArray(value) ? [] : {};
+  Object.keys(value).forEach((k) => {
+    result[k] = cloneFreeze(value[k]);
+  });
+  return freeze(result);
 }
 
 function isIndex(segment: string) {
@@ -107,9 +100,12 @@ function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i =
 }
 
 function checkReorderedSetState(e: Event, k: any) {
-  if (!e.next?.[k]?.$frozen) return false;
+  if (!e.next?.[k]?.[$frozen]) return false;
+  console.log('!!!', e.prev, e.next?.[k]);
   if (!Array.isArray(e.prev) || !Array.isArray(e.next)) return false;
+  console.log('??????');
   if (!e.prev.includes(e.next?.[k])) return false;
+  console.log('??????');
   return (e.reordered = true);
 }
 
@@ -117,7 +113,7 @@ function iterateDeepEvents(updates: Event[] = []) {
   const parent = updates.at(-1)!;
   const { prev, next } = parent;
   if (!isObjectType(prev) && !isObjectType(next)) return;
-  const keys = [...Object.keys(prev), ...Object.keys(next)];
+  const keys = [...Object.keys(prev ?? {}), ...Object.keys(next ?? {})];
 
   for (const k of new Set(keys)) {
     if (prev?.[k] === next?.[k]) continue;
@@ -152,10 +148,15 @@ const methods: StateProxyApiMethods<any> = {
     const last = updates.at(-1)!;
     if (last.next === last.prev) return;
 
-    iterateDeepEvents(updates);
+    const prelast = updates.at(-2)!;
+    //console.log(prelast, this[$path].at(-1)!);
+    //console.log(prelast?.next?.[0], prelast?.next?.[0]?.[$frozen]);
+    if (!prelast || !checkReorderedSetState(prelast, this[$path].at(-1)!)) {
+      iterateDeepEvents(updates);
+    }
 
     root[$data] = dummy[''];
-    updates.forEach((event) => console.log(event));
+    updates.forEach((event) => console.log(event.glob, ...event.idxs, event.prev, event.next, event.reordered));
   },
   $listen: function (listener) {},
 };
