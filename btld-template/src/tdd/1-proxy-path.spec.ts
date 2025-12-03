@@ -50,6 +50,8 @@ function freeze<T>(value: T): T {
   return Object.freeze(value);
 }
 
+// TODO fix recursion issue
+
 function cloneFreeze(value: any) {
   if (!isObjectType(value)) return value;
   if (value[$frozen]) return value;
@@ -101,11 +103,8 @@ function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i =
 
 function checkReorderedSetState(e: Event, k: any) {
   if (!e.next?.[k]?.[$frozen]) return false;
-  console.log('!!!', e.prev, e.next?.[k]);
   if (!Array.isArray(e.prev) || !Array.isArray(e.next)) return false;
-  console.log('??????');
   if (!e.prev.includes(e.next?.[k])) return false;
-  console.log('??????');
   return (e.reordered = true);
 }
 
@@ -149,10 +148,10 @@ const methods: StateProxyApiMethods<any> = {
     if (last.next === last.prev) return;
 
     const prelast = updates.at(-2)!;
-    //console.log(prelast, this[$path].at(-1)!);
-    //console.log(prelast?.next?.[0], prelast?.next?.[0]?.[$frozen]);
     if (!prelast || !checkReorderedSetState(prelast, this[$path].at(-1)!)) {
       iterateDeepEvents(updates);
+    } else {
+      updates.pop();
     }
 
     root[$data] = dummy[''];
