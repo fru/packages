@@ -50,14 +50,17 @@ function freeze<T>(value: T): T {
   return Object.freeze(value);
 }
 
-// TODO fix recursion issue
+// https://stackoverflow.com/questions/7826992/browser-javascript-stack-size-limit
 
-function cloneFreeze(value: any) {
+function cloneFreeze(value: any, max_depth = 7000) {
+  if (max_depth < 0) {
+    throw new Error(`Depth limit reached. Possible circular reference.`);
+  }
   if (!isObjectType(value)) return value;
   if (value[$frozen]) return value;
   const result: any = Array.isArray(value) ? [] : {};
   Object.keys(value).forEach((k) => {
-    result[k] = cloneFreeze(value[k]);
+    result[k] = cloneFreeze(value[k], max_depth - 1);
   });
   return freeze(result);
 }
