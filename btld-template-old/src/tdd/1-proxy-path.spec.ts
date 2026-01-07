@@ -104,6 +104,8 @@ function iterateSet(parent: Event, updates: Event[], path: Path, value: any, i =
   if (i < path.length) iterateSet(event, updates, path, value, i + 1);
 }
 
+/// PROBLEM: is this really what i want to end up with, reordered = true?
+
 function checkReorderedSetState(e: Event, k: any) {
   if (!e.next?.[k]?.[$frozen]) return false;
   if (!Array.isArray(e.prev) || !Array.isArray(e.next)) return false;

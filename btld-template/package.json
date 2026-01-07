@@ -32,7 +32,7 @@
   },
   "scripts": {
     "build": "unbuild",
-    "test": "vitest tdd",
+    "test": "vitest",
     "coverage": "vitest run --coverage --coverage.reporter=text",
     "prepublishOnly": "npm run build",
     "ci-test": "vitest --run",

@@ -12,18 +12,16 @@ export function cloneAsDeepFrozen(val: any, d = 7000): any {
   if (d < 0) throw new Error('Depth limit reached, likely due to circular reference.');
 
   if (typeof val === 'number' && !Number.isFinite(val)) return null;
-  if (typeof val === 'function' || typeof val === 'bigint') return undefined;
+  if (typeof val === 'function' || typeof val === 'bigint' || typeof val === 'symbol') return undefined;
 
   if (!isComplexType(val) || val[$deep_frozen]) return val;
   if (val instanceof Date) return val.toISOString();
   if (val instanceof String || val instanceof Number || val instanceof Boolean) return val.valueOf();
 
-  const isArr = Array.isArray(val);
-  const res: any = isArr ? [] : {};
-
+  const res: any = Array.isArray(val) ? [] : {};
   Object.defineProperty(res, $deep_frozen, { value: true, enumerable: false });
 
-  if (isArr) {
+  if (Array.isArray(val)) {
     // Needed to ensure spares arrays like [1,,3] have empty slot filled with null
     for (let i = 0; i < val.length; i++) {
       res[i] = cloneAsDeepFrozen(val[i], d - 1) ?? null;
