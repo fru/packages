@@ -4,9 +4,9 @@ import { isComplexType, $deep_frozen } from "./helper";
  * Recursively clones and freezes value. Identical to JSON.parse(JSON.stringify(val)). Circular references are strictly forbidden.
  * @param d - Maximum recursion depth (Default: 7000). Optimized for Safari/iOS stack limits.
  * Source: https://stackoverflow.com/questions/7826992/browser-javascript-stack-size-limit
- * @throws {Error} The recursion depth is exceeded. This almost always indicates a **Circular Reference**.
- * While hitting the depth limit incurs a synchronous delay (~ms), this is irrelevant as it signifies a broken 
- * implementation that requires code repair, not runtime recovery.
+ * @throws {Error}
+ * The recursion depth is exceeded. This almost always indicates a **Circular Reference**. While hitting the depth limit incurs a 
+ * synchronous delay (~ms), this is irrelevant as it signifies a broken implementation that requires code repair, not runtime recovery.
  */
 export function cloneAsDeepFrozen(val: any, d = 7000): any {
   if (d < 0) throw new Error('Depth limit reached, likely due to circular reference.');
