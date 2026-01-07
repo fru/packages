@@ -1,0 +1,51 @@
+{
+  "version": "0.0.1",
+  "name": "@btld/template",
+  "description": "Super tiny template rendering",
+  "author": "Florian Rueberg",
+  "license": "MIT",
+  "homepage": "rueberg.eu/btld",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fru/packages.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fru/packages/issues"
+  },
+  "keywords": [
+    "template"
+  ],
+  "files": [
+    "dist/**"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.mts"
+    }
+  },
+  "scripts": {
+    "build": "unbuild",
+    "test": "vitest tdd",
+    "coverage": "vitest run --coverage --coverage.reporter=text",
+    "prepublishOnly": "npm run build",
+    "ci-test": "vitest --run",
+    "ci-coverage": "vitest run --coverage --coverage.reporter=lcov --coverage.reporter=json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "@vitest/browser-playwright": "^4.0.7",
+    "@vitest/browser-preview": "^4.0.7",
+    "@vitest/coverage-v8": "^4.0.6",
+    "typescript": "~5.9.3",
+    "unbuild": "^3.6.1",
+    "vitest": "^4.0.7",
+    "collapse-whitespace": "^1.1.7"
+  }
+}
