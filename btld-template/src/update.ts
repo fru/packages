@@ -12,8 +12,9 @@ export function update(root: Root, path: Path, value: unknown) {
     const [k, ...rest] = path;
 
     const match = isComplexType(prev) && Array.isArray(prev) === isIndex(k);
-    const next = cloneNode(match, prev);
-    if (!match) iterChangesDeep(next, prev, hooks, idxs);
+    let next: any = isIndex(k) ? [] : {};
+    if (match) next = isIndex(k) ? [...prev] : { ...prev };
+    else iterChangesDeep(next, prev, hooks, idxs);
 
     for (const listener of hooks?.[$listener] ?? []) {
       changesRoot.push([listener, { idxs, prev, next }]);
@@ -43,8 +44,3 @@ export function update(root: Root, path: Path, value: unknown) {
 
 const glob = (prop: string) => (isIndex(prop) ? '*' : prop);
 const concat = (idxs: number[], prop: string) => (isIndex(prop) ? [...idxs, +prop] : idxs);
-
-function cloneNode(copy: boolean, node: any) {
-  if (Array.isArray(node)) return copy ? [...node] : [];
-  return copy ? { ...node } : {};
-}
