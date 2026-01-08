@@ -24,6 +24,7 @@ export const $deep_frozen = Symbol();
 // Truthy check used to excludes null.
 export const isComplexType = (v: any) => !!v && typeof v === 'object';
 
+// ??? const isIndex = (prop: string) => /^\d+$/.test(prop);
 const isIndex = (prop: string) => prop && +prop >= 0 && Number.isInteger(+prop);
 const glob = (prop: string) => (isIndex(prop) ? '*' : prop);
 const concat = (idxs: number[], prop: string) => (isIndex(prop) ? [...idxs, +prop] : idxs);
@@ -69,7 +70,7 @@ export function update(root: Root, path: Path, value: unknown) {
     }
 
     for (const listener of hooks?.[$listener] ?? []) {
-      changesRoot.push([listener, { idxs, prev, next }]);
+      changesDeep.push([listener, { idxs, prev, next }]);
     }
   }
 }
