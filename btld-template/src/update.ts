@@ -24,7 +24,6 @@ export const $deep_frozen = Symbol();
 // Truthy check used to excludes null.
 export const isComplexType = (v: any) => !!v && typeof v === 'object';
 
-// ??? const isIndex = (prop: string) => /^\d+$/.test(prop);
 const isIndex = (prop: string) => prop && +prop >= 0 && Number.isInteger(+prop);
 const glob = (prop: string) => (isIndex(prop) ? '*' : prop);
 const concat = (idxs: number[], prop: string) => (isIndex(prop) ? [...idxs, +prop] : idxs);
@@ -46,15 +45,15 @@ export function update(root: Root, path: Path, value: unknown) {
     const [k, ...rest] = path;
 
     const match = isComplexType(prev) && Array.isArray(prev) === isIndex(k);
-    const clone = cloneNode(match, prev);
-    if (!match) iterChangesDeep(clone, prev, hooks, idxs);
+    const next = cloneNode(match, prev);
+    if (!match) iterChangesDeep(next, prev, hooks, idxs);
 
     for (const listener of hooks?.[$listener] ?? []) {
-      changesRoot.push([listener, { idxs, prev, next: clone }]);
+      changesRoot.push([listener, { idxs, prev, next }]);
     }
 
-    clone[k] = iterChangesRoot(rest, prev?.[k], hooks?.[glob(k)], concat(idxs, k));
-    return Object.freeze(clone);
+    next[k] = iterChangesRoot(rest, prev?.[k], hooks?.[glob(k)], concat(idxs, k));
+    return Object.freeze(next);
   }
 
   function iterChangesDeep(next: any, prev: any, hooks: ListenerTree, idxs: number[]) {
@@ -62,8 +61,8 @@ export function update(root: Root, path: Path, value: unknown) {
 
     if (isComplexType(prev) || isComplexType(next)) {
       const count = changesDeep.length;
-      const keys = new Set([...Object.keys(prev ?? {}), ...Object.keys(next ?? {})]);
-      for (const k of keys) {
+      const keys = [...Object.keys(prev ?? {}), ...Object.keys(next ?? {})];
+      for (const k of new Set(keys)) {
         iterChangesDeep(next?.[k], prev?.[k], hooks?.[glob(k)], concat(idxs, k));
       }
       if (count === changesDeep.length) return;
