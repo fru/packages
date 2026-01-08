@@ -38,33 +38,33 @@ export function update(root: Root, path: Path, value: unknown) {
   const changesRoot: [Listener, Event][] = [];
   const changesDeep: [Listener, Event][] = [];
 
-  root.value = iterChangesRoot(root.value, root.hooks, path, []);
-  [...changesRoot, ...changesDeep.toReversed()].forEach(([l, e]) => l(e));
+  root.value = iterChangesRoot(path, root.value, root.hooks, []);
+  [...changesRoot, ...changesDeep.reverse()].forEach(([l, e]) => l(e));
 
-  function iterChangesRoot(prev: any, hooks: ListenerTree, path: Path, idxs: number[]) {
-    if (!path.length) return (iterChangesDeep(prev, value, hooks, idxs), value);
+  function iterChangesRoot(path: Path, prev: any, hooks: ListenerTree, idxs: number[]) {
+    if (!path.length) return (iterChangesDeep(value, prev, hooks, idxs), value);
     const [k, ...rest] = path;
 
     const match = isComplexType(prev) && Array.isArray(prev) === isIndex(k);
     const clone = cloneNode(match, prev);
-    if (!match) iterChangesDeep(prev, clone, hooks, idxs);
+    if (!match) iterChangesDeep(clone, prev, hooks, idxs);
 
     for (const listener of hooks?.[$listener] ?? []) {
       changesRoot.push([listener, { idxs, prev, next: clone }]);
     }
 
-    clone[k] = iterChangesRoot(prev?.[k], hooks?.[glob(k)], rest, concat(idxs, k));
+    clone[k] = iterChangesRoot(rest, prev?.[k], hooks?.[glob(k)], concat(idxs, k));
     return Object.freeze(clone);
   }
 
-  function iterChangesDeep(prev: any, next: any, hooks: ListenerTree, idxs: number[]) {
+  function iterChangesDeep(next: any, prev: any, hooks: ListenerTree, idxs: number[]) {
     if (prev === next || !hooks) return;
 
     if (isComplexType(prev) || isComplexType(next)) {
       const count = changesDeep.length;
       const keys = new Set([...Object.keys(prev ?? {}), ...Object.keys(next ?? {})]);
       for (const k of keys) {
-        iterChangesDeep(prev?.[k], next?.[k], hooks?.[glob(k)], concat(idxs, k));
+        iterChangesDeep(next?.[k], prev?.[k], hooks?.[glob(k)], concat(idxs, k));
       }
       if (count === changesDeep.length) return;
     }
