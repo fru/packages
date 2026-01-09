@@ -1,11 +1,10 @@
 import { $listener, isComplexType, isIndex, Event, Listener, ListenerTree, Path, Root } from './helper';
 
 export function update(root: Root, path: Path, value: unknown) {
-  const changesRoot: [Listener, Event][] = [];
-  const changesDeep: [Listener, Event][] = [];
+  const changes: [Listener, Event][] = [];
 
   root.value = iterChangesRoot(path, root.value, root.hooks, []);
-  [...changesRoot, ...changesDeep.reverse()].forEach(([l, e]) => l(e));
+  changes.reverse().forEach(([l, e]) => l(e));
 
   function iterChangesRoot(path: Path, prev: any, hooks: ListenerTree, idxs: number[]) {
     if (!path.length) return (iterChangesDeep(value, prev, hooks, idxs), value);
@@ -16,11 +15,11 @@ export function update(root: Root, path: Path, value: unknown) {
     if (match) next = isIndex(k) ? [...prev] : { ...prev };
     else iterChangesDeep(next, prev, hooks, idxs);
 
-    for (const listener of hooks?.[$listener] ?? []) {
-      changesRoot.push([listener, { idxs, prev, next }]);
-    }
-
     next[k] = iterChangesRoot(rest, prev?.[k], hooks?.[glob(k)], concat(idxs, k));
+
+    for (const listener of hooks?.[$listener] ?? []) {
+      changes.push([listener, { idxs, prev, next }]);
+    }
     return Object.freeze(next);
   }
 
@@ -28,16 +27,16 @@ export function update(root: Root, path: Path, value: unknown) {
     if (prev === next || !hooks) return;
 
     if (isComplexType(prev) || isComplexType(next)) {
-      const count = changesDeep.length;
+      const count = changes.length;
       const keys = [...Object.keys(prev ?? {}), ...Object.keys(next ?? {})];
       for (const k of new Set(keys)) {
         iterChangesDeep(next?.[k], prev?.[k], hooks?.[glob(k)], concat(idxs, k));
       }
-      if (count === changesDeep.length) return;
+      if (count === changes.length) return;
     }
 
     for (const listener of hooks?.[$listener] ?? []) {
-      changesDeep.push([listener, { idxs, prev, next }]);
+      changes.push([listener, { idxs, prev, next }]);
     }
   }
 }
